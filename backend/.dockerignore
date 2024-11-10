@@ -1,0 +1,14 @@
+# Ignore everything
+*
+
+# Except these
+!go.mod
+!go.sum
+!main.go
+!controller/
+!model/
+!repository/
+!routes/
+!service/
+!Dockerfile
+!.env
