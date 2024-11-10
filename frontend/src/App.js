@@ -1,53 +1,47 @@
-import {
-    Button,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    TextField
-} from "@mui/material";
+import { Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from "@mui/material";
 import axios from "axios";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 
-const SERVER_URL = process.env.REACT_APP_SERVER_URL
+const SERVER_URL = process.env.REACT_APP_SERVER_URL;
 
 function App() {
-    const [employees, setEmployees] = useState([])
-    const [employeeDetails, setEmployeeDetails] = useState({name: '', employeeId: 0})
+    const [employees, setEmployees] = useState([]);
+    const [employeeDetails, setEmployeeDetails] = useState({ name: '', employeeId: 0 });
 
     async function fetchEmployees() {
-        const response = await axios.get(SERVER_URL);
-        setEmployees(response.data)
+        try {
+            const response = await axios.get(SERVER_URL);
+            setEmployees(response.data);
+        } catch (error) {
+            console.error(`Error fetching employees: ${JSON.stringify(error)}`);
+        }
     }
 
     async function createEmployee() {
-        await axios.post(SERVER_URL, {
-            name: employeeDetails.name,
-            employee_id: parseInt(employeeDetails.employeeId)
-        })
-            .then(async () => {
-                await fetchEmployees()
-            })
-            .catch(function (error) {
-                console.log(`error adding employee${JSON.stringfy(error)}`);
+        try {
+            await axios.post(SERVER_URL, {
+                name: employeeDetails.name,
+                employee_id: parseInt(employeeDetails.employeeId),
             });
-        setEmployeeDetails({...employeeDetails, name: '', employeeId: 0})
+            await fetchEmployees();
+        } catch (error) {
+            console.error(`Error adding employee: ${JSON.stringify(error)}`);
+        }
+        setEmployeeDetails({ ...employeeDetails, name: '', employeeId: 0 });
     }
 
     const handleSetName = (newName) => {
-        setEmployeeDetails({...employeeDetails, name: newName.target.value})
-    }
+        setEmployeeDetails({ ...employeeDetails, name: newName.target.value });
+    };
 
     const handleSetEmployeeId = (employeeId) => {
-        setEmployeeDetails({...employeeDetails, employeeId: employeeId.target.value})
-    }
+        setEmployeeDetails({ ...employeeDetails, employeeId: employeeId.target.value });
+    };
 
     useEffect(() => {
         fetchEmployees();
-    }, [])
+    }, []);
+
     return (
         <>
             <div className="App" style={{
@@ -56,16 +50,25 @@ function App() {
                 justifyContent: "space-between",
                 padding: "1rem calc(100vh - 50rem)",
             }}>
-                <TextField id="standard-basic" label="Name" variant="standard" onChange={handleSetName}/>
-                <TextField id="standard-number" label="Id"
+                <TextField
+                    id="standard-basic"
+                    label="Name"
+                    variant="standard"
+                    value={employeeDetails.name}
+                    onChange={handleSetName}
+                />
+                <TextField
+                    id="standard-number"
+                    label="Id"
                     type="number"
                     InputLabelProps={{
                         shrink: true,
                     }}
                     variant="standard"
+                    value={employeeDetails.employeeId}
                     onChange={handleSetEmployeeId}
                 />
-                <Button variant="contained" onClick={createEmployee}>Add Employees</Button>
+                <Button variant="contained" onClick={createEmployee}>Add Employee</Button>
             </div>
             <TableContainer component={Paper} style={{
                 display: "flex",
@@ -73,7 +76,7 @@ function App() {
                 paddingTop: "2rem",
                 justifyContent: "center",
             }}>
-                <Table sx={{maxWidth: 600}} aria-label="simple table">
+                <Table sx={{ maxWidth: 600 }} aria-label="simple table">
                     <TableHead>
                         <TableRow>
                             <TableCell align="right">Employee Name</TableCell>
@@ -81,10 +84,10 @@ function App() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {employees.map((employee,index) => (
+                        {employees.map((employee, index) => (
                             <TableRow
                                 key={index}
-                                sx={{'&:last-child td, &:last-child th': {border: 0}}}
+                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                             >
                                 <TableCell component="th" scope="row">
                                     {employee.name}
