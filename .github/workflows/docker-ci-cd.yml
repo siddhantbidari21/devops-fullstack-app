@@ -38,8 +38,8 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest ./frontend
           docker push ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest
 
-      # Step 6: Deploy containers on EC2
-      - name: Deploy Backend and Frontend Containers on EC2
+      # Step 6: Deploy PostgreSQL, Backend, and Frontend Containers on EC2
+      - name: Deploy Containers on EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -47,9 +47,20 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            docker pull postgres:latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/backend-app:latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest
+
+            # Create a custom network
+            docker network create mynetwork
+
+            # Run PostgreSQL container
+            docker run -d --name postgres-db --network=mynetwork -e POSTGRES_USER=udatabase -e POSTGRES_PASSWORD=database123 -e POSTGRES_DB=database -p 5432:5432 postgres:latest
+
+            # Run Backend container
             docker stop backend-container || true && docker rm backend-container || true
+            docker run -d --name backend-container --network=mynetwork -p 8081:8080 -e DB_HOST=postgres-db -e DB_USER=udatabase -e DB_PASSWORD=database123 -e DB_NAME=database ${{ secrets.DOCKER_USERNAME }}/backend-app:latest
+
+            # Run Frontend container
             docker stop frontend-container || true && docker rm frontend-container || true
-            docker run -d --name backend-container -p 8081:8080 ${{ secrets.DOCKER_USERNAME }}/backend-app:latest
-            docker run -d --name frontend-container -p 3000:80 ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest
+            docker run -d --name frontend-container --network=mynetwork -p 3000:80 ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest
