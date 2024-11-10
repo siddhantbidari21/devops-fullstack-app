@@ -33,7 +33,6 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/backend-app:latest
 
       # Step 5: Build and push the frontend Docker image
-      - name: Build and Push Frontend Image
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest ./frontend
           docker push ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest
@@ -56,6 +55,14 @@ jobs:
 
             # Run PostgreSQL container
             docker run -d --name postgres-db --network=mynetwork -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} -e POSTGRES_DB=${{ secrets.POSTGRES_DB }} -p 5432:5432 postgres:latest
+
+            # Wait for PostgreSQL to be ready
+            echo "Waiting for PostgreSQL to be ready..."
+            until docker exec postgres-db pg_isready -U ${{ secrets.POSTGRES_USER }}; do
+              >&2 echo "Postgres is unavailable - sleeping"
+              sleep 1
+            done
+            echo "PostgreSQL is up and running!"
 
             # Run Backend container
             docker stop backend-container || true && docker rm backend-container || true
