@@ -5,7 +5,7 @@ FROM golang:1.19-alpine AS builder
 WORKDIR /app
 
 # Copy go.mod and go.sum files
-COPY go.mod go.sum ./
+COPY go.mod go.sum ./ 
 
 # Download all dependencies
 RUN go mod download
@@ -32,6 +32,4 @@ COPY .env .env
 EXPOSE 8080
 
 # Command to run the executable
-CMD ["sh", "-c", "./main & tail -f /dev/null"]
-
-
+CMD ["./main"]
