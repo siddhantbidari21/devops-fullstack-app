@@ -62,7 +62,7 @@ jobs:
             docker exec postgres-db psql -U ${{ secrets.POSTGRES_USER }} -c "CREATE DATABASE ${{ secrets.POSTGRES_DB }};" || true
 
             docker stop backend-container || true && docker rm backend-container || true
-            docker run -d --name backend-container --network=mynetwork -p 8081:8080 -e DB_HOST=postgres-db -e DB_USER=${{ secrets.POSTGRES_USER }} -e DB_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} -e DB_NAME=${{ secrets.POSTGRES_DB }} ${{ secrets.DOCKER_USERNAME }}/backend-app:latest
+            docker run -d --name backend-container --network=mynetwork -p 8080:8080 -e DB_HOST=postgres-db -e DB_USER=${{ secrets.POSTGRES_USER }} -e DB_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} -e DB_NAME=${{ secrets.POSTGRES_DB }} ${{ secrets.DOCKER_USERNAME }}/backend-app:latest
 
             docker stop frontend-container || true && docker rm frontend-container || true
             docker run -d --name frontend-container --network=mynetwork -p 3000:80 ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest
