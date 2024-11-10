@@ -51,8 +51,26 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/backend-app:latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest
 
-            # Create a custom network
-            docker network create mynetwork
+            # Check if the custom network exists before creating it
+            if ! docker network inspect mynetwork >/dev/null 2>&1; then
+              docker network create mynetwork
+            fi
 
             # Run PostgreSQL container
-            docker run -d --name postgres-db --network=mynetwork -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} -e POSTGRES_DB=${{ secrets.POSTGRES_DB }} -
+            docker run -d --name postgres-db --network=mynetwork -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} -e POSTGRES_DB=${{ secrets.POSTGRES_DB }} -p 5432:5432 postgres:latest
+
+            # Wait for PostgreSQL to be ready
+            echo "Waiting for PostgreSQL to be ready..."
+            until docker exec postgres-db pg_isready -U ${{ secrets.POSTGRES_USER }}; do
+              >&2 echo "Postgres is unavailable - sleeping"
+              sleep 1
+            done
+            echo "PostgreSQL is up and running!"
+
+            # Run Backend container
+            docker stop backend-container || true && docker rm backend-container || true
+            docker run -d --name backend-container --network=mynetwork -p 8081:8080 -e DB_HOST=postgres-db -e DB_USER=${{ secrets.POSTGRES_USER }} -e DB_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} -e DB_NAME=${{ secrets.POSTGRES_DB }} ${{ secrets.DOCKER_USERNAME }}/backend-app:latest
+
+            # Run Frontend container
+            docker stop frontend-container || true && docker rm frontend-container || true
+            docker run -d --name frontend-container --network=mynetwork -p 3000:80 ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest
