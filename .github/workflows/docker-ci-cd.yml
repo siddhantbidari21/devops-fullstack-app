@@ -55,11 +55,11 @@ jobs:
             docker network create mynetwork
 
             # Run PostgreSQL container
-            docker run -d --name postgres-db --network=mynetwork -e POSTGRES_USER=udatabase -e POSTGRES_PASSWORD=database123 -e POSTGRES_DB=database -p 5432:5432 postgres:latest
+            docker run -d --name postgres-db --network=mynetwork -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} -e POSTGRES_DB=${{ secrets.POSTGRES_DB }} -p 5432:5432 postgres:latest
 
             # Run Backend container
             docker stop backend-container || true && docker rm backend-container || true
-            docker run -d --name backend-container --network=mynetwork -p 8081:8080 -e DB_HOST=postgres-db -e DB_USER=udatabase -e DB_PASSWORD=database123 -e DB_NAME=database ${{ secrets.DOCKER_USERNAME }}/backend-app:latest
+            docker run -d --name backend-container --network=mynetwork -p 8081:8080 -e DB_HOST=postgres-db -e DB_USER=${{ secrets.POSTGRES_USER }} -e DB_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} -e DB_NAME=${{ secrets.POSTGRES_DB }} ${{ secrets.DOCKER_USERNAME }}/backend-app:latest
 
             # Run Frontend container
             docker stop frontend-container || true && docker rm frontend-container || true
