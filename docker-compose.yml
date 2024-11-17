@@ -1,0 +1,24 @@
+version: '3'
+services:
+  backend:
+    build: ./backend
+    env_file: ./backend/.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+  frontend:
+    build: ./frontend
+    env_file: ./frontend/.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: employees_user
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: employees_db
+    ports:
+      - "5432:5432"
