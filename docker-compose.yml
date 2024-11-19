@@ -31,6 +31,13 @@ services:
       - devops-network
     ports:
       - "8080:8080"
+    environment:
+      - DB_HOST=db
+      - DB_USER=employees_user
+      - DB_PASSWORD=123
+      - DB_NAME=employees_db
+      - DB_PORT=5432
+      - ALLOWED_ORIGINS= *
 
   frontend:
     build:
