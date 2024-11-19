@@ -1,24 +1,54 @@
-version: '3'
+version: "3.7"
+
 services:
-  backend:
-    build: ./backend
-    env_file: ./backend/.env
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
-  frontend:
-    build: ./frontend
-    env_file: ./frontend/.env
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
   db:
     image: postgres:14
+    container_name: devops-fullstack-app_db
     environment:
-      POSTGRES_USER: employees_user
       POSTGRES_PASSWORD: 123
+      POSTGRES_USER: employees_user
       POSTGRES_DB: employees_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    networks:
+      - devops-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "employees_user", "-d", "employees_db"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
+
+  backend:
+    build:
+      context: ./backend
+    container_name: devops-fullstack-app_backend
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - devops-network
     ports:
-      - "5432:5432"
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: devops-fullstack-app_frontend
+    depends_on:
+      - backend
+    networks:
+      - devops-network
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_SERVER_URL=http://backend:8080/employees
+
+networks:
+  devops-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
