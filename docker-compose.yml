@@ -3,7 +3,7 @@ version: "3.7"
 services:
   db:
     image: postgres:14
-    container_name: devops-fullstack-app_db
+    container_name: postgres_db
     environment:
       POSTGRES_PASSWORD: 123
       POSTGRES_USER: employees_user
@@ -23,7 +23,7 @@ services:
   backend:
     build:
       context: ./backend
-    container_name: devops-fullstack-app_backend
+    container_name: backend
     depends_on:
       db:
         condition: service_healthy
@@ -42,7 +42,7 @@ services:
   frontend:
     build:
       context: ./frontend
-    container_name: devops-fullstack-app_frontend
+    container_name: frontend
     depends_on:
       - backend
     networks:
